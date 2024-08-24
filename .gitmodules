@@ -1,0 +1,3 @@
+[submodule "modules/pdos"]
+	path = modules/pdos
+	url = git@github.com:skissane/pdos.git
