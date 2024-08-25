@@ -8,6 +8,7 @@ timed() {
 }
 download() { timed "download $1/$2" downloadx "$@"; }
 downloadx() { [[ -f docker/$2 ]] || wget -O ./docker/$2 https://ftp.gnu.org/gnu/$1/$2; }
+timed "git submodules" git submodule update --init --recursive
 download binutils binutils-2.43.1.tar.gz
 download gcc/gcc-14.2.0 gcc-14.2.0.tar.gz
 timed "docker build" docker build -t crossbuild docker/
