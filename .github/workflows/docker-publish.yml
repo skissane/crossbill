@@ -71,7 +71,17 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-      # TODO: Download files manually here!
+      # Download source files
+      - name: Download binutils
+        uses: ethanjli/cached-download-action@v0.1.2
+        with:
+          url: https://ftp.gnu.org/gnu/binutils/binutils-2.43.1.tar.gz
+          destination: docker/binutils-2.43.1.tar.gz
+      - name: Download gcc
+        uses: ethanjli/cached-download-action@v0.1.2
+        with:
+          url: https://ftp.gnu.org/gnu/gcc/gcc-14.2.0/gcc-14.2.0.tar.gz
+          destination: docker/gcc-14.2.0.tar.gz
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
