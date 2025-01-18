@@ -25,4 +25,5 @@ ENV CROSSBUILD_UID=1000
 RUN useradd -u $CROSSBUILD_UID -U -s /bin/bash -m crossbill
 RUN chown crossbill /work
 RUN echo 'crossbill ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/crossbill
+RUN apt-get install -y qemu-system-x86
 USER crossbill
