@@ -1,0 +1,118 @@
+#!/usr/bin/env python3
+import os
+import shlex
+import subprocess
+import sys
+import time
+
+def fatal(msg):
+    """Prints a fatal error message to stderr and exits with status 1."""
+    print(f"%%%%% FATAL ERROR: {msg}", file=sys.stderr)
+    sys.exit(1)
+
+def timed(description, func, *args):
+    """
+    Runs a function and prints the time taken along with a description.
+    """
+    start_time = time.time()
+    print(f"=== START: {description} ===")
+    func(*args)
+    end_time = time.time()
+    elapsed = end_time - start_time
+    print(f"=== TOOK: {elapsed:.3f} seconds: {description} ===\n")
+
+def download(category, filename):
+    """
+    Downloads a file from the GNU FTP server unless it already exists.
+    """
+    timed(f"download {category}/{filename}", downloadx, category, filename)
+
+def downloadx(category, filename):
+    """
+    Performs the actual file download.
+    """
+    file_path = os.path.join("docker", filename)
+    if not os.path.isfile(file_path):
+        url = f"https://ftp.gnu.org/gnu/{category}/{filename}"
+        subprocess.run(["wget", "-O", file_path, url], check=True)
+
+def build(args):
+    """
+    Builds the Docker image.
+    """
+    if args:
+        fatal("build subcommand takes no arguments")
+
+    # Ensure the script is executed from the directory containing it
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    os.chdir(script_dir)
+
+    # Timed commands
+    timed("git submodules", subprocess.run, ["git", "submodule", "update", "--init", "--recursive"], check=True)
+    download("binutils", "binutils-2.43.1.tar.gz")
+    download("gcc/gcc-14.2.0", "gcc-14.2.0.tar.gz")
+    timed("docker build", subprocess.run, ["docker", "build", "-t", "crossbill", "docker/"], check=True)
+
+def do_run(*cmd):
+    cmd_text = shlex.join(cmd)
+    print(f"RUN: {cmd_text}", file=sys.stderr)
+    try:
+        subprocess.run(cmd, check=True)
+    except subprocess.CalledProcessError as e:
+        fatal(f"Command failed with rc={e.returncode}: {cmd_text}")
+
+def pull(image):
+    do_run("docker","pull",image)
+
+def run(args):
+    # Get absolute paths for the current working directory and the script's directory
+    call_dir = os.path.abspath(os.getcwd())
+    base_dir = os.path.abspath(os.path.dirname(__file__))
+
+    # Check if call_dir is within base_dir or is base_dir itself
+    if not call_dir.startswith(base_dir):
+        fatal(f"Called from unsupported directory: {call_dir}")
+
+    # Determine the subdirectory path relative to base_dir
+    sub_dir = os.path.relpath(call_dir, base_dir)
+
+    # Set the default image
+    image = "ghcr.io/skissane/crossbill:master"
+
+    # Parse the arguments, handling the "-local" option
+    if args and args[0] == "-local":
+        args.pop(0)
+        # Rebuild the image
+        build()
+
+        # Set the local image name
+        image = "crossbill"
+
+    # Prefix args with "env -C sub_dir" if sub_dir != "."
+    if sub_dir != ".":
+        args = ["env", "-C", sub_dir, *args]
+
+    # Construct the Docker command
+    docker_args = ["docker", "run", "--rm", "-v", f"{base_dir}:/work", "-it", image, *args]
+
+    # Refresh image
+    if ":" in image:
+        pull(image)
+
+    # Run the Docker command
+    do_run(*docker_args)
+
+def main(args):
+   if not args:
+       fatal("subcommand required: build or run")
+   subcommand = args[0]
+   args = args[1:]
+   if subcommand == "build":
+       build(args)
+   elif subcommand == "run":
+       run(args)
+   else:
+       fatal(f"invalid subcommand: {subcommand}")
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

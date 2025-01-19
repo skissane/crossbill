@@ -11,6 +11,12 @@ Notes:
 - Assumes your user account is UID `1000`. Edit `docker/Dockerfile` and change
   `ENV CROSSBUILD_UID=1000` line if it is not.
 
+# Commands
+
+- `./crossbill run`: run crossbill image
+- `./crossbill run -local`: run locally built crossbill image
+- `./crossbill build`: build image locally
+
 # Building PDOS
 
 See steps in file [`PDOS-BUILD.md`](./PDOS-BUILD.md)
