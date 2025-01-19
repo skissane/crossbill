@@ -1,6 +1,6 @@
 # Building PDOS
 
-1. `./run.sh` to build and enter Docker container
+1. `./crossbill run` to build and enter Docker container
 2. `cd /work/modules/pdos/pdpclib`
 3. `make -f makefile.pde`
 
