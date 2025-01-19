@@ -67,7 +67,7 @@ def pull(image):
 def run(args):
     # Get absolute paths for the current working directory and the script's directory
     call_dir = os.path.abspath(os.getcwd())
-    base_dir = os.path.abspath(os.path.dirname(__file__))
+    base_dir = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
     # Check if call_dir is within base_dir or is base_dir itself
     if not call_dir.startswith(base_dir):
