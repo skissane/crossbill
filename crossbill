@@ -90,6 +90,8 @@ def run(args):
 
     # Prefix args with "env -C sub_dir" if sub_dir != "."
     if sub_dir != ".":
+        if not args:
+            args = ["bash"]
         args = ["env", "-C", sub_dir, *args]
 
     # Construct the Docker command
